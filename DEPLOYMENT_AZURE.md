@@ -6,7 +6,7 @@ Commands use Azure CLI with Bash syntax (Cloud Shell, WSL, macOS, or Linux). Rep
 
 ## Deployment Scope
 
-The repository includes `deploy.sh` for an interactive core deployment. From Ubuntu, run `bash deploy.sh azure`; it checks lint and types, builds the Docker image locally, creates or reuses the resource group, Container Apps environment, Container App, ACR, user-assigned managed identity, and Key Vault integration, then deploys and checks the HTTPS endpoint. It prompts for public Sanity/site settings and the Resend values. Each run stores new Key Vault versions for the prompted Resend values.
+The repository includes `deploy_cloud.sh` for an interactive Azure deployment. From Ubuntu, run `bash deploy_cloud.sh azure`; it checks lint and types, builds the Docker image locally, creates or reuses the resource group, Container Apps environment, Container App, ACR, user-assigned managed identity, and Key Vault integration, then deploys and checks the HTTPS endpoint. It prompts for public Sanity/site settings and the Resend values. Each run stores new Key Vault versions for the prompted Resend values. For a regular Ubuntu VPS with Docker Compose/Caddy, use [deploy.sh](deploy.sh) instead.
 
 The script does not create a custom domain, DNS records, CDN, or CI/CD pipeline. The Container Apps HTTPS URL is sufficient for an initial smoke test. Review the steps below for manual deployment options and optional infrastructure.
 

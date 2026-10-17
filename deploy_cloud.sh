@@ -6,7 +6,7 @@ cd "$SCRIPT_DIR"
 
 usage() {
   cat <<'EOF'
-Usage: ./deploy.sh <gcp|azure>
+Usage: ./deploy_cloud.sh <gcp|azure>
 
 Deploy this Next.js app to Google Cloud Run or Azure Container Apps.
 The script creates core container-hosting resources and prompts for the
@@ -19,8 +19,8 @@ Prerequisites:
   Azure:  Azure CLI (az), authenticated account, subscription permissions
 
 Examples:
-  ./deploy.sh gcp
-  ./deploy.sh azure
+  ./deploy_cloud.sh gcp
+  ./deploy_cloud.sh azure
 EOF
 }
 
