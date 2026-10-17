@@ -1,0 +1,293 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Validate production build",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run development server",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' run dev -- --port 3000",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check foundation utilities",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\node.exe' scripts/check-foundation.mjs",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run Sanity Studio",
+			"type": "shell",
+			"command": "$env:NODE_OPTIONS = ($env:NODE_OPTIONS + ' --use-system-ca').Trim(); & 'C:\\Program Files\\nodejs\\npm.cmd' run dev:studio",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Download trade photograph",
+			"type": "shell",
+			"command": "& 'C:\\Windows\\System32\\curl.exe' --fail --location --connect-timeout 15 --max-time 60 'https://images.unsplash.com/photo-1494412519320-aa613dfb7738?auto=format&fit=crop&w=1920&q=85' --output public/trade-port.jpg",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Lint website",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' run lint",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Format Phase 1 files",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=prettier -- prettier --write 'components/layout/*.tsx' 'components/shared/*.tsx' 'components/ui/*.tsx' 'app/**/*.tsx' app/globals.css",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Download homepage assets",
+			"type": "shell",
+			"command": "& ./scripts/download-home-assets.ps1",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Format homepage components",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=prettier -- prettier --write 'components/home/*.tsx' app/page.tsx app/globals.css",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Download About assets",
+			"type": "shell",
+			"command": "& ./scripts/download-about-assets.ps1",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Format Phase 3 files",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=prettier -- prettier --write 'components/about/*.tsx' 'components/certifications/*.tsx' app/about/page.tsx app/certifications/page.tsx lib/about-content.ts lib/certifications.ts",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Seed sample Sanity catalog",
+			"type": "shell",
+			"command": "$env:NODE_OPTIONS = ($env:NODE_OPTIONS + ' --use-system-ca').Trim(); & 'C:\\Program Files\\nodejs\\npm.cmd' exec -- sanity exec scripts/seed-catalog.ts --with-user-token",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Format catalog files",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=prettier -- prettier --write 'sanity/schemaTypes/*.ts' 'components/products/*.tsx' 'app/products/**/*.tsx' app/contact/page.tsx lib/catalog-types.ts lib/catalog-filter.ts lib/queries.ts scripts/seed-catalog.ts next.config.ts",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate catalog schema",
+			"type": "shell",
+			"command": "$env:NODE_OPTIONS = ($env:NODE_OPTIONS + ' --use-system-ca').Trim(); & 'C:\\Program Files\\nodejs\\npm.cmd' exec -- sanity schema extract --path .next/catalog-schema.json",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Test catalog filters",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=tsx -- tsx --test scripts/catalog-filter.test.ts",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate CMS catalog documents",
+			"type": "shell",
+			"command": "$env:NODE_OPTIONS = ($env:NODE_OPTIONS + ' --use-system-ca').Trim(); & 'C:\\Program Files\\nodejs\\npm.cmd' exec -- sanity documents validate --yes --format ndjson",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Build standalone catalog Studio",
+			"type": "shell",
+			"command": "$env:NODE_OPTIONS = ($env:NODE_OPTIONS + ' --use-system-ca').Trim(); & 'C:\\Program Files\\nodejs\\npm.cmd' exec -- sanity build .next/studio-check --yes",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Install map geometry dependency",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' install topojson-client",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Install map geometry types",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' install -D @types/topojson-client",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Test global map data",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=tsx -- tsx --test scripts/map-data.test.ts",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Format global map files",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=prettier -- prettier --write 'components/map/*.tsx' app/global-reach/page.tsx lib/countries-data.ts scripts/map-data.test.ts components/products/InquiryContext.tsx app/globals.css",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Test inquiry handler",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=tsx -- tsx --test scripts/inquiry.test.ts",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check inquiry email readiness",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=tsx -- tsx scripts/check-inquiry-config.ts",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Download contact photograph",
+			"type": "shell",
+			"command": "& 'C:\\Windows\\System32\\curl.exe' --fail --silent --show-error --location --connect-timeout 15 --max-time 60 'https://images.unsplash.com/photo-1423666639041-f56000c27a9a?auto=format&fit=crop&w=1600&q=85' --output public/contact/communication.jpg",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Format inquiry files",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=prettier -- prettier --write 'components/contact/*.tsx' app/contact/page.tsx app/api/inquiry/route.ts components/products/ProductDetails.tsx lib/contact-schema.ts lib/inquiry-email.ts lib/inquiry-handler.ts scripts/inquiry.test.ts scripts/check-inquiry-config.ts",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Read Next.js feedback guidance",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --no -- next internal agent-feedback-instructions",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Retry Next.js feedback guidance",
+			"type": "shell",
+			"command": "$env:NODE_OPTIONS = ($env:NODE_OPTIONS + ' --use-system-ca').Trim(); & 'C:\\Program Files\\nodejs\\npm.cmd' exec --no -- next internal agent-feedback-instructions",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Install Lenis smooth scrolling",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' install lenis",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Format animation files",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=prettier -- prettier --write 'components/shared/*.tsx' 'components/ui/*.tsx' components/home/Hero.tsx components/home/Stats.tsx components/about/CompanyStory.tsx components/layout/Footer.tsx components/products/ProductCatalog.tsx components/products/ProductCard.tsx app/layout.tsx app/template.tsx app/products/template.tsx app/globals.css",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Test SEO metadata",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=tsx -- tsx --test scripts/seo.test.ts",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Install SEO audit tooling",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' install -D sharp lighthouse @next/bundle-analyzer",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Generate social and icon assets",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\node.exe' scripts/generate-seo-assets.mjs",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run production SEO audit server",
+			"type": "shell",
+			"command": "$env:NODE_OPTIONS = ($env:NODE_OPTIONS + ' --use-system-ca').Trim(); & 'C:\\Program Files\\nodejs\\npm.cmd' run start -- --port 3002",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Audit production Lighthouse",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\node.exe' scripts/audit-performance.mjs",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect production audit findings",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\node.exe' scripts/inspect-audit.mjs",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Stop production audit server",
+			"type": "shell",
+			"command": "Get-NetTCPConnection -LocalPort 3002 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ }",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Analyze Turbopack production bundle",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec -- next analyze --output",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Install explicit audit launcher",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' install -D chrome-launcher",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Format SEO performance files",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=prettier -- prettier --write lib/seo.ts lib/structured-data.ts scripts/seo.test.ts scripts/generate-seo-assets.mjs scripts/audit-performance.mjs scripts/inspect-audit.mjs 'components/seo/*.tsx' components/home/DeferredGlobalPreview.tsx components/shared/ScrollReveal.tsx components/shared/TextReveal.tsx components/shared/WhatsAppButton.tsx components/shared/ParallaxSection.tsx components/shared/DesktopCursor.tsx components/ui/MagneticButton.tsx components/home/Hero.tsx components/shared/Preloader.tsx components/layout/Navbar.tsx 'app/**/*.tsx' app/sitemap.ts app/robots.ts app/globals.css next.config.ts",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Verify SEO image dimensions",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\node.exe' scripts/verify-seo-assets.mjs",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Install Studio media library",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' install sanity-plugin-media",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

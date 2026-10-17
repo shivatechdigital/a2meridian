@@ -1,0 +1,5 @@
+import { Card, Stack, Text } from "@sanity/ui";
+
+export default function InquiryPrivacyNotice() {
+  return <Card padding={5} height="fill"><Stack space={5}><Text size={3} weight="semibold">Private inquiry storage is not configured</Text><Text>Do not store names, email addresses, phone numbers, messages, or internal notes in the public website dataset.</Text><Text>A schema, read-only field, hidden sidebar, or disabled action does not restrict Content Lake API access. Public datasets remain publicly readable.</Text><Text>The inquiry model is registered for a future private CRM workspace. Creation, editing, and form persistence are disabled in this workspace. The existing email inquiry API is unchanged.</Text><Text>Before enabling CRM storage, configure a separate private dataset or secured backend, server-only write credentials, authorized staff roles, retention rules, and a privacy notice. Product references must then use cross-dataset references or a validated public product ID/text snapshot.</Text></Stack></Card>;
+}
