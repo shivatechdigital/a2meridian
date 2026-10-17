@@ -1,81 +1,88 @@
-# Ubuntu VPS Deployment
+# Ubuntu IP Deployment
 
-This deploys the A2 Meridian website from
-`https://github.com/shivatechdigital/a2meridian.git` to an Ubuntu server. Docker
-Compose builds the repository's production Dockerfile. Caddy provides HTTPS and
-proxies public traffic to the app; Node.js and npm are not required on the host.
+`deploy.sh` deploys the GitHub project to a fresh Ubuntu server and runs two
+Docker containers:
 
-## Requirements
+- Website: `http://SERVER_PUBLIC_IP:3000`
+- Sanity Studio: `http://SERVER_PUBLIC_IP:3333`
 
-- Ubuntu server with a public IPv4 or IPv6 address and root/sudo access.
-- A domain or subdomain you control. Create DNS A/AAAA records pointing to this
-  server before deployment and wait until the name resolves.
-- Allow inbound TCP ports 80 and 443 in the VPS/cloud provider firewall. The
-  script opens these UFW ports only if UFW is already active; it does not enable
-  UFW or alter provider firewall rules.
-- Sanity project ID and dataset.
-- Resend API key, verified sender address, and inquiry recipient address.
+The host needs Git, curl, and Docker/Compose. Node.js is installed inside the
+Docker build/runtime images, not on Ubuntu itself. This direct-IP setup uses HTTP
+without TLS; use a domain and HTTPS reverse proxy before collecting real user
+data or treating the site as a production-grade secure endpoint.
 
-The server needs enough memory and disk space for a Next.js production image
-build. If Docker's build is killed, increase server resources and retry. Check
-your provider's billing before creating a VPS.
+## Before Running
 
-## Deploy
+- Create an Ubuntu VPS with a public IPv4 address and SSH/root access.
+- In the VPS provider firewall/security group, allow inbound TCP `22`, `3000`, and
+  `3333`. The script adds ports `3000` and `3333` to UFW only if UFW is already
+  active; it does not alter provider-level firewall settings.
+- Have the Sanity project ID and dataset ready.
+- Resend is optional during deployment. Without its key/from/to values, the site
+  runs but inquiry email delivery remains unavailable until configured.
 
-SSH into Ubuntu and run:
+The server needs enough RAM and disk for two production image builds. If a build
+is killed, increase VPS memory and disk capacity, then rerun the script.
+
+## One-Command Bootstrap
+
+SSH to Ubuntu and run this command. It installs Git/curl, downloads the deploy
+script from GitHub, and runs it as root; the script then clones the full project
+into `/opt/a2meridian`, installs Docker if needed, builds both images, opens
+active UFW rules, starts both containers, and checks both URLs.
+
+First commit and push this deploy script, the Dockerfile, Compose file, and
+documentation changes to the repository's `main` branch. The bootstrap downloads
+the script from GitHub and the deployment clones the code from that same branch.
 
 ```bash
-sudo apt-get update
-sudo apt-get install -y git ca-certificates curl
-git clone https://github.com/shivatechdigital/a2meridian.git
-cd a2meridian
-sudo bash deploy.sh
+sudo apt-get update && sudo apt-get install -y ca-certificates curl git && curl -fsSL https://raw.githubusercontent.com/shivatechdigital/a2meridian/main/deploy.sh -o /tmp/a2-meridian-deploy.sh && sudo bash /tmp/a2-meridian-deploy.sh
 ```
 
-The script installs Docker Engine and Docker Compose from Docker's official
-Ubuntu apt repository when Docker is missing. It prompts for the domain, Sanity
-settings, optional Google verification value, Resend settings, and an email for
-HTTPS certificate notices. The Resend key is entered without terminal echo and
-stored in `/opt/a2meridian/.env.runtime` with root-only mode `600`; it is not a
-Docker build argument or printed by the script.
+Enter the server's public IPv4 and Sanity values when prompted, then type
+`DEPLOY`. The script clones/fast-forwards the GitHub default branch at
+`/opt/a2meridian`; it refuses to overwrite an unrelated directory or reset local
+tracked changes. Runtime values are stored in root-owned
+`/opt/a2meridian/.env.runtime` with mode `600`. The Resend API key is entered
+without terminal echo and is not used as a Docker build argument.
 
-Review the DNS/firewall reminders and type `DEPLOY` to approve system changes.
-The script clones or fast-forwards the GitHub default branch in
-`/opt/a2meridian`, builds and starts the app and Caddy containers with restart
-policies, and checks the public HTTPS URL. On later runs it uses
-`git pull --ff-only`; it will not reset tracked edits or overwrite an unrelated
-directory. Existing Resend credentials are kept by default; answer `n` to rotate
-them.
+You can also clone the repository manually and run `sudo bash deploy.sh` from
+that checkout; the deployed working copy is still `/opt/a2meridian`.
+
+## Sanity Studio Access
+
+The Studio is exposed on port `3333` as requested. Sanity login still protects
+editing, but the Studio login page is public to anyone who can reach that port.
+In Sanity Manage, add the origin `http://SERVER_PUBLIC_IP:3333` to the project's
+CORS origins (with credentials enabled) so browser authentication works. Do not
+put a Sanity write token in this script or in browser-visible environment
+variables. Restrict port `3333` to your own IP in the VPS firewall when possible.
 
 ## Operations
-
-Open the printed HTTPS URL. Useful commands on the server:
 
 ```bash
 cd /opt/a2meridian
 sudo docker compose --env-file .env.deploy -f compose.deploy.yaml ps
-sudo docker compose --env-file .env.deploy -f compose.deploy.yaml logs -f app
-sudo docker compose --env-file .env.deploy -f compose.deploy.yaml logs -f caddy
-sudo docker compose --env-file .env.deploy -f compose.deploy.yaml restart app
+sudo docker compose --env-file .env.deploy -f compose.deploy.yaml logs -f website
+sudo docker compose --env-file .env.deploy -f compose.deploy.yaml logs -f sanity-studio
+sudo docker compose --env-file .env.deploy -f compose.deploy.yaml restart website
 ```
 
-Do not publish `.env.runtime`, paste it into support requests, or commit it.
-Rerun `sudo bash deploy.sh` to apply source/config changes. Build-time public
-Sanity and site URL values are embedded in the image and require a rebuild.
+Rerun `sudo bash deploy.sh` to fetch the latest fast-forwardable GitHub commit
+and rebuild/restart both services. Public Sanity settings and the site origin are
+compiled into the images. Keep `.env.runtime` private and never commit it.
 
-The Sanity dataset is public. This deployment does **not** enable inquiry storage
-in Sanity; the inquiry endpoint still depends on valid Resend configuration. The
-Sanity Studio is not deployed or exposed by this script.
+The Sanity dataset in this project is public. This deployment does not enable
+inquiry storage in Sanity. Resend email delivery requires valid credentials, and
+direct HTTP/IP deployment does not provide encrypted browser-to-server traffic.
 
 ## Troubleshooting
 
-- For HTTPS errors, verify DNS points to this server and the provider firewall
-  permits TCP 80/443, then inspect Caddy logs with the command above.
-- If the domain is not resolving, finish DNS setup and rerun `sudo bash deploy.sh`
-  from the checkout.
-- For a killed Docker build, inspect `free -h` and `df -h`, increase server
-  resources, and retry.
-- Docker Compose 2.30+ is required to load runtime secrets literally. The script
-  checks for this before starting the app.
-- If inquiry email delivery fails, verify the Resend key and sender-domain status,
-  then rerun the script and choose to replace the credentials.
+- If a URL does not open, check `sudo docker compose --env-file .env.deploy -f
+  compose.deploy.yaml ps` and the container logs above.
+- Confirm the VPS provider firewall allows the relevant TCP port. If UFW is
+  active, verify `sudo ufw status` includes `3000/tcp` and `3333/tcp`.
+- If Studio loads but sign-in fails, add the exact `http://IP:3333` origin to
+  Sanity CORS settings with credentials enabled.
+- Compose version `2.30+` is required for literal handling of runtime env-file
+  values; the deploy script checks this before starting.

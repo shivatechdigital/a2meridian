@@ -1,0 +1,38 @@
+services:
+  website:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_SANITY_PROJECT_ID: ${NEXT_PUBLIC_SANITY_PROJECT_ID}
+        NEXT_PUBLIC_SANITY_DATASET: ${NEXT_PUBLIC_SANITY_DATASET}
+        NEXT_PUBLIC_SANITY_API_VERSION: ${NEXT_PUBLIC_SANITY_API_VERSION}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+        GOOGLE_SITE_VERIFICATION: ${GOOGLE_SITE_VERIFICATION}
+    env_file:
+      - path: ./.env.runtime
+        required: true
+        format: raw
+    ports:
+      - "3000:8080"
+    restart: unless-stopped
+    init: true
+
+  sanity-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: studio-runner
+      args:
+        NEXT_PUBLIC_SANITY_PROJECT_ID: ${NEXT_PUBLIC_SANITY_PROJECT_ID}
+        NEXT_PUBLIC_SANITY_DATASET: ${NEXT_PUBLIC_SANITY_DATASET}
+        NEXT_PUBLIC_SANITY_API_VERSION: ${NEXT_PUBLIC_SANITY_API_VERSION}
+    env_file:
+      - path: ./.env.runtime
+        required: true
+        format: raw
+    ports:
+      - "3333:3333"
+    restart: unless-stopped
+    init: true

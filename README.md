@@ -409,9 +409,9 @@ integration boundaries are in [CMS_FOUNDATION.md](CMS_FOUNDATION.md).
 
 ## Ubuntu VPS Deployment
 
-Deploy the GitHub project with Docker Compose and automatic Caddy HTTPS using
-[deploy.sh](deploy.sh). Server, DNS, firewall, and secret setup steps are in
-[DEPLOY_UBUNTU.md](DEPLOY_UBUNTU.md).
+Deploy the GitHub project to Ubuntu with Docker Compose using [deploy.sh](deploy.sh).
+It runs the website on port 3000 and Sanity Studio on 3333; prerequisites and
+firewall/Studio CORS steps are in [DEPLOY_UBUNTU.md](DEPLOY_UBUNTU.md).
 
 ## Resources
 
