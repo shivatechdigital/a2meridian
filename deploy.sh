@@ -142,19 +142,36 @@ else
 fi
 install_docker
 cd "$APP_DIR"
+site_url="$(config_value .env.deploy NEXT_PUBLIC_SITE_URL)"
+if [[ ! "$site_url" =~ ^https://[A-Za-z0-9.-]+$ ]]; then
+  site_url="http://$public_ip:3000"
+fi
+studio_base_path="$(config_value .env.deploy SANITY_STUDIO_BASE_PATH)"
+studio_base_path="${studio_base_path:-/}"
+bind_address="$(config_value .env.deploy BIND_ADDRESS)"
+bind_address="${bind_address:-0.0.0.0}"
 if command -v ufw >/dev/null 2>&1 && ufw status | grep -q 'Status: active'; then
   ufw allow 22/tcp
-  ufw allow 3000/tcp
-  ufw allow 3333/tcp
+  if [[ "$bind_address" == 127.0.0.1 ]]; then
+    ufw allow 80/tcp
+    ufw allow 443/tcp
+    ufw delete allow 3000/tcp || true
+    ufw delete allow 3333/tcp || true
+  else
+    ufw allow 3000/tcp
+    ufw allow 3333/tcp
+  fi
 fi
 
 umask 077
 cat >.env.deploy <<EOF
 SERVER_PUBLIC_IP=$public_ip
+BIND_ADDRESS=$bind_address
+SANITY_STUDIO_BASE_PATH=$studio_base_path
 NEXT_PUBLIC_SANITY_PROJECT_ID=$project
 NEXT_PUBLIC_SANITY_DATASET=$dataset
 NEXT_PUBLIC_SANITY_API_VERSION=$api_version
-NEXT_PUBLIC_SITE_URL=http://$public_ip:3000
+NEXT_PUBLIC_SITE_URL=$site_url
 GOOGLE_SITE_VERIFICATION=$verification
 EOF
 runtime_temp="$(mktemp .env.runtime.XXXXXX)"
@@ -163,7 +180,8 @@ trap 'rm -f -- "$runtime_temp"' EXIT
   printf 'NEXT_PUBLIC_SANITY_PROJECT_ID=%s\n' "$project"
   printf 'NEXT_PUBLIC_SANITY_DATASET=%s\n' "$dataset"
   printf 'NEXT_PUBLIC_SANITY_API_VERSION=%s\n' "$api_version"
-  printf 'NEXT_PUBLIC_SITE_URL=http://%s:3000\n' "$public_ip"
+  printf 'NEXT_PUBLIC_SITE_URL=%s\n' "$site_url"
+  printf 'SANITY_STUDIO_BASE_PATH=%s\nBIND_ADDRESS=%s\n' "$studio_base_path" "$bind_address"
   printf 'GOOGLE_SITE_VERIFICATION=%s\n' "$verification"
   printf 'RESEND_API_KEY=%s\nINQUIRY_FROM_EMAIL=%s\nINQUIRY_TO_EMAIL=%s\n' "$key" "$from_email" "$to_email"
 } >"$runtime_temp"
@@ -178,10 +196,18 @@ docker compose --env-file .env.deploy -f "$COMPOSE_FILE" build --pull sanity-stu
 docker compose --env-file .env.deploy -f "$COMPOSE_FILE" up -d --remove-orphans
 
 printf '\nWaiting for website and Studio on %s ...\n' "$public_ip"
+studio_health_path="/"
+if [[ "$studio_base_path" == /admin ]]; then
+  studio_health_path="/admin/"
+fi
 for attempt in {1..18}; do
   if curl --fail --silent --show-error --max-time 10 http://127.0.0.1:3000/ -o /dev/null \
-    && curl --fail --silent --show-error --max-time 10 http://127.0.0.1:3333/ -o /dev/null; then
-    printf '\nDeployment complete:\nWebsite: http://%s:3000\nSanity Studio: http://%s:3333\n' "$public_ip" "$public_ip"
+    && curl --fail --silent --show-error --max-time 10 "http://127.0.0.1:3333${studio_health_path}" -o /dev/null; then
+    if [[ "$site_url" == https://* ]]; then
+      printf '\nDeployment update complete:\nWebsite: %s\nSanity Studio: %s/admin/\n' "$site_url" "$site_url"
+    else
+      printf '\nDeployment complete:\nWebsite: http://%s:3000\nSanity Studio: http://%s:3333\n' "$public_ip" "$public_ip"
+    fi
     docker compose --env-file .env.deploy -f "$COMPOSE_FILE" ps
     exit 0
   fi

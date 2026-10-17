@@ -316,6 +316,13 @@
 			"command": "& 'C:\\Program Files\\nodejs\\node.exe' scripts/check-studio-foundation.mjs --documents-only",
 			"isBackground": false,
 			"problemMatcher": []
+		},
+		{
+			"label": "Validate Sanity admin base path",
+			"type": "shell",
+			"command": "$env:SANITY_STUDIO_BASE_PATH='/admin'; $env:NEXT_PUBLIC_SANITY_PROJECT_ID='a2meridian'; $env:NEXT_PUBLIC_SANITY_DATASET='production'; $env:NEXT_PUBLIC_SANITY_API_VERSION='2026-10-16'; npm exec -- sanity build .next/studio-admin-check --yes",
+			"isBackground": false,
+			"problemMatcher": []
 		}
 	]
 }

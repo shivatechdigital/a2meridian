@@ -1,22 +1,26 @@
-# Ubuntu IP Deployment
+# Ubuntu VPS Deployment
 
-`deploy.sh` deploys the GitHub project to a fresh Ubuntu server and runs two
-Docker containers:
+Deploy in two stages. First `deploy.sh` installs Docker and runs the project;
+then `setup-domain.sh` installs/configures Nginx and Certbot for the domain.
+The final URLs are:
 
-- Website: `http://SERVER_PUBLIC_IP:3000`
-- Sanity Studio: `http://SERVER_PUBLIC_IP:3333`
+- Website: `https://YOUR_DOMAIN/`
+- Sanity Studio: `https://YOUR_DOMAIN/admin/`
 
-The host needs Git, curl, and Docker/Compose. Node.js is installed inside the
-Docker build/runtime images, not on Ubuntu itself. This direct-IP setup uses HTTP
-without TLS; use a domain and HTTPS reverse proxy before collecting real user
-data or treating the site as a production-grade secure endpoint.
+Node.js runs inside Docker images. Docker Compose keeps both app services running
+after reboot, so PM2 is not used or needed. Nginx is the public reverse proxy;
+after domain setup the app ports bind to localhost only. The initial IP stage
+serves HTTP directly on ports 3000 and 3333 until Nginx/HTTPS is configured.
 
 ## Before Running
 
 - Create an Ubuntu VPS with a public IPv4 address and SSH/root access.
-- In the VPS provider firewall/security group, allow inbound TCP `22`, `3000`, and
-  `3333`. The script adds ports `3000` and `3333` to UFW only if UFW is already
-  active; it does not alter provider-level firewall settings.
+- Initially allow inbound TCP `22`, `3000`, and `3333` for the first deployment.
+  Before running the domain setup, allow TCP `80` and `443` in the VPS provider
+  firewall. The scripts can update active UFW rules but cannot change your
+  provider's firewall/security group.
+- Create an A record for the chosen domain pointing to this VPS public IPv4 and
+  wait for DNS to resolve before requesting the Let's Encrypt certificate.
 - Have the Sanity project ID and dataset ready.
 - Resend is optional during deployment. Without its key/from/to values, the site
   runs but inquiry email delivery remains unavailable until configured.
@@ -24,16 +28,15 @@ data or treating the site as a production-grade secure endpoint.
 The server needs enough RAM and disk for two production image builds. If a build
 is killed, increase VPS memory and disk capacity, then rerun the script.
 
-## One-Command Bootstrap
+## Stage 1: App and Studio
 
 SSH to Ubuntu and run this command. It installs Git/curl, downloads the deploy
-script from GitHub, and runs it as root; the script then clones the full project
-into `/opt/a2meridian`, installs Docker if needed, builds both images, opens
-active UFW rules, starts both containers, and checks both URLs.
+script from GitHub, and runs it as root; the script clones the project into
+`/opt/a2meridian`, installs Docker/Compose if needed, builds both images, starts
+both containers, and checks their IP-based URLs.
 
-First commit and push this deploy script, the Dockerfile, Compose file, and
-documentation changes to the repository's `main` branch. The bootstrap downloads
-the script from GitHub and the deployment clones the code from that same branch.
+Push the deployment files to GitHub `main` before running the bootstrap. It
+downloads `deploy.sh` from that branch and clones the code from the same branch.
 
 ```bash
 sudo apt-get update && sudo apt-get install -y ca-certificates curl git && curl -fsSL https://raw.githubusercontent.com/shivatechdigital/a2meridian/main/deploy.sh -o /tmp/a2-meridian-deploy.sh && sudo bash /tmp/a2-meridian-deploy.sh
@@ -46,17 +49,42 @@ tracked changes. Runtime values are stored in root-owned
 `/opt/a2meridian/.env.runtime` with mode `600`. The Resend API key is entered
 without terminal echo and is not used as a Docker build argument.
 
+Stage 1 prints temporary direct-IP URLs for ports `3000` and `3333`. Use them
+only until Stage 2 is complete; after the domain setup, use HTTPS and close
+provider-firewall access to `3000/3333`.
+
 You can also clone the repository manually and run `sudo bash deploy.sh` from
 that checkout; the deployed working copy is still `/opt/a2meridian`.
 
-## Sanity Studio Access
+## Stage 2: Domain, Nginx, and SSL
 
-The Studio is exposed on port `3333` as requested. Sanity login still protects
-editing, but the Studio login page is public to anyone who can reach that port.
-In Sanity Manage, add the origin `http://SERVER_PUBLIC_IP:3333` to the project's
-CORS origins (with credentials enabled) so browser authentication works. Do not
-put a Sanity write token in this script or in browser-visible environment
-variables. Restrict port `3333` to your own IP in the VPS firewall when possible.
+Point the domain's A record to the VPS address and allow TCP `80` and `443` in
+the provider firewall. Then run:
+
+```bash
+sudo bash /opt/a2meridian/setup-domain.sh
+```
+
+The script detects an existing managed A2 Meridian Nginx setup and asks whether
+to keep its domain or enter a replacement. It installs Nginx/Certbot if needed,
+requests a Let's Encrypt certificate, rebuilds the Studio at `/admin`, configures
+Nginx routes, and finally binds Docker ports `3000/3333` to localhost only. It
+tests Nginx and both HTTPS routes before reporting success. Certbot's system
+timer handles certificate renewal.
+
+The script preserves the current bind address while the certificate and Nginx
+configuration are being prepared. Once both containers pass their local checks,
+it switches them to localhost-only and reloads the Nginx site.
+
+For Sanity login, add the website origin `https://YOUR_DOMAIN` in Sanity Manage
+under API > CORS origins, with credentials enabled. The browser origin does not
+include `/admin`. Editing still requires Sanity authentication. Do not add a
+write token to this deployment or browser environment.
+
+If a different Nginx app already owns `/etc/nginx/sites-available/a2meridian`,
+the script stops instead of overwriting it. Existing unrelated Nginx sites are
+left in place. When changing domain, the previous certificate is left unused;
+it is not automatically deleted.
 
 ## Operations
 
@@ -66,23 +94,31 @@ sudo docker compose --env-file .env.deploy -f compose.deploy.yaml ps
 sudo docker compose --env-file .env.deploy -f compose.deploy.yaml logs -f website
 sudo docker compose --env-file .env.deploy -f compose.deploy.yaml logs -f sanity-studio
 sudo docker compose --env-file .env.deploy -f compose.deploy.yaml restart website
+sudo nginx -t
+sudo certbot renew --dry-run
 ```
 
 Rerun `sudo bash deploy.sh` to fetch the latest fast-forwardable GitHub commit
-and rebuild/restart both services. Public Sanity settings and the site origin are
-compiled into the images. Keep `.env.runtime` private and never commit it.
+and rebuild/restart both services; it preserves the domain, `/admin` path, and
+localhost binding after Stage 2. Rerun `sudo bash /opt/a2meridian/setup-domain.sh`
+when changing the domain. Public Sanity settings and the site origin are compiled
+into the images. Keep `.env.runtime` private and never commit it.
 
 The Sanity dataset in this project is public. This deployment does not enable
-inquiry storage in Sanity. Resend email delivery requires valid credentials, and
-direct HTTP/IP deployment does not provide encrypted browser-to-server traffic.
+inquiry storage in Sanity. Resend email delivery requires valid credentials.
+PM2 is intentionally not used: Docker Compose `restart: unless-stopped` keeps
+both app containers running across service failures and server reboots.
 
 ## Troubleshooting
 
 - If a URL does not open, check `sudo docker compose --env-file .env.deploy -f
-  compose.deploy.yaml ps` and the container logs above.
-- Confirm the VPS provider firewall allows the relevant TCP port. If UFW is
-  active, verify `sudo ufw status` includes `3000/tcp` and `3333/tcp`.
-- If Studio loads but sign-in fails, add the exact `http://IP:3333` origin to
-  Sanity CORS settings with credentials enabled.
+  compose.deploy.yaml ps`, container logs, and `sudo nginx -t`.
+- Confirm the provider firewall permits `80/443`. After Stage 2, ports `3000` and
+  `3333` should be closed in the provider firewall; the containers bind only to
+  localhost. If UFW is active, check `sudo ufw status` too.
+- If Studio loads but sign-in fails, add the exact `https://YOUR_DOMAIN` origin
+  to Sanity CORS settings with credentials enabled.
+- If Certbot fails, confirm the domain A record resolves to this VPS and that
+  inbound TCP port `80` is reachable from the internet.
 - Compose version `2.30+` is required for literal handling of runtime env-file
   values; the deploy script checks this before starting.

@@ -11,10 +11,12 @@ import { apiVersion, dataset, projectId } from "./sanity/env";
 import { schema } from "./sanity/schemaTypes";
 import { structure } from "./sanity/structure";
 
+const studioBasePath = process.env.SANITY_STUDIO_BASE_PATH || "/";
+
 export default defineConfig({
   name: "default",
   title: "A2 Meridian Associates",
-  basePath: "/",
+  basePath: studioBasePath,
   projectId,
   dataset,
   // Add and edit the content schema in the './sanity/schemaTypes' folder

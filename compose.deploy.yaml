@@ -15,7 +15,7 @@ services:
         required: true
         format: raw
     ports:
-      - "3000:8080"
+      - "${BIND_ADDRESS:-0.0.0.0}:3000:8080"
     restart: unless-stopped
     init: true
 
@@ -28,11 +28,12 @@ services:
         NEXT_PUBLIC_SANITY_PROJECT_ID: ${NEXT_PUBLIC_SANITY_PROJECT_ID}
         NEXT_PUBLIC_SANITY_DATASET: ${NEXT_PUBLIC_SANITY_DATASET}
         NEXT_PUBLIC_SANITY_API_VERSION: ${NEXT_PUBLIC_SANITY_API_VERSION}
+        SANITY_STUDIO_BASE_PATH: ${SANITY_STUDIO_BASE_PATH:-/}
     env_file:
       - path: ./.env.runtime
         required: true
         format: raw
     ports:
-      - "3333:3333"
+      - "${BIND_ADDRESS:-0.0.0.0}:3333:3333"
     restart: unless-stopped
     init: true

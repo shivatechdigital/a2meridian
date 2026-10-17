@@ -409,9 +409,10 @@ integration boundaries are in [CMS_FOUNDATION.md](CMS_FOUNDATION.md).
 
 ## Ubuntu VPS Deployment
 
-Deploy the GitHub project to Ubuntu with Docker Compose using [deploy.sh](deploy.sh).
-It runs the website on port 3000 and Sanity Studio on 3333; prerequisites and
-firewall/Studio CORS steps are in [DEPLOY_UBUNTU.md](DEPLOY_UBUNTU.md).
+Deploy in two steps: [deploy.sh](deploy.sh) starts the website and Studio in
+Docker, then [setup-domain.sh](setup-domain.sh) configures Nginx, HTTPS, and the
+Studio at `/admin`. Full Ubuntu instructions are in
+[DEPLOY_UBUNTU.md](DEPLOY_UBUNTU.md).
 
 ## Resources
 
