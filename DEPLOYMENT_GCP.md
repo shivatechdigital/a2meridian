@@ -1,14 +1,14 @@
 # Deploy to Google Cloud Platform
 
-This guide deploys the A2 Meridian Next.js website as a Docker container on Cloud Run, stores images in Artifact Registry, and keeps email credentials in Secret Manager. It is written for this repository's root-level `app/` layout and Next.js 16 configuration.
+This guide deploys the A2 Meridian Next.js website as a Docker container on Cloud Run, stores images in Artifact Registry, and keeps email credentials in Secret Manager. Cloud Build CI/CD is an optional separate setup. It is written for this repository's root-level `app/` layout and Next.js 16 configuration.
 
 The commands below use Bash syntax (Cloud Shell, WSL, macOS, or Linux). Replace every `<PLACEHOLDER>` before running a command. Review estimated costs and billing alerts in your Google Cloud project first.
 
 ## Deployment Scope
 
-This setup provides Cloud Run, Artifact Registry, Secret Manager, and a Cloud Build pipeline. It does not create a load balancer, CDN, DNS records, or a domain automatically. Add those only if required; Cloud Run's generated HTTPS URL is sufficient for an initial smoke test.
+The repository includes `deploy.sh` for an interactive core deployment. From Ubuntu, run `bash deploy.sh gcp`; it checks lint and types, builds the Docker image locally, creates or reuses Artifact Registry, Secret Manager, and Cloud Run resources, then deploys and checks the generated HTTPS endpoint. It prompts for public Sanity/site settings and the Resend values. Each run adds new Secret Manager versions for the prompted Resend values.
 
-The deployment recipe in this guide is not yet installed in the repository. Complete the configuration and Docker files below before building an image.
+The script does not create a load balancer, CDN, DNS records, custom domain, or Cloud Build trigger. Cloud Run's generated HTTPS URL is sufficient for an initial smoke test. Review the steps below for manual deployment options and optional infrastructure.
 
 ## 1. Prerequisites and Project Values
 

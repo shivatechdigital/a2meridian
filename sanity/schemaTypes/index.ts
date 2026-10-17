@@ -17,7 +17,25 @@ import certification from "./documents/certification";
 import contactPage from "./documents/contactPage";
 import inquiry from "./documents/inquiry";
 
-export const schemaTypes: SchemaTypeDefinition[] = [seo, blockContent, teamMember, timelineItem, countryEntry, officeLocation, statItem, valueItem, siteSettings, homepage, aboutPage, globalReachPage, certification, contactPage, inquiry, category, product];
+export const schemaTypes: SchemaTypeDefinition[] = [
+  seo,
+  blockContent,
+  teamMember,
+  timelineItem,
+  countryEntry,
+  officeLocation,
+  statItem,
+  valueItem,
+  siteSettings,
+  homepage,
+  aboutPage,
+  globalReachPage,
+  certification,
+  contactPage,
+  inquiry,
+  category,
+  product,
+];
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: schemaTypes,

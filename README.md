@@ -390,6 +390,23 @@ metrics, test environment, limitations, changes, reproducible commands, and
 remaining deployment/field-validation work. Build, lint, and 20 regression tests
 passed. Useful scripts: `seo:assets`, `audit:performance`, `test:seo`, and `analyze`.
 
+## A1 CMS Foundation
+
+Eight reusable object types and seven content documents are now registered in the
+existing `sanity/schemaTypes` directory, alongside the unchanged product/category
+models. Studio has grouped navigation, fixed-ID singleton editing safeguards,
+and the Media plugin. Website/Studio ports remain 3000/3333.
+
+This is the model/Studio foundation, not automatic frontend content integration.
+Only existing catalog queries are currently wired. No singleton content was
+seeded/published and no existing CMS records were overwritten.
+
+The current dataset is public: inquiry storage/editing is deliberately disabled
+and its sidebar opens a privacy notice. A read-only schema is not authorization.
+Private inquiry CRM needs separate secured storage, permissions, and server
+integration first. Details, schema coverage, validation commands, and next
+integration boundaries are in [CMS_FOUNDATION.md](CMS_FOUNDATION.md).
+
 ## Resources
 
 To learn more about Next.js, take a look at the following resources:

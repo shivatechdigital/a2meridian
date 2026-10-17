@@ -4,12 +4,19 @@ export const SINGLETON_PAGES = [
   { type: "globalReachPage", title: "Global Reach", id: "globalReachPage" },
   { type: "contactPage", title: "Contact", id: "contactPage" },
 ] as const;
-export const SINGLETON_TYPES = new Set<string>(["siteSettings", ...SINGLETON_PAGES.map(page => page.type)]);
+export const SINGLETON_TYPES = new Set<string>([
+  "siteSettings",
+  ...SINGLETON_PAGES.map((page) => page.type),
+]);
 
 export function canCreateType(type: string) {
   return !SINGLETON_TYPES.has(type) && type !== "inquiry";
 }
 export function canUseDocumentAction(type: string, action?: string) {
   if (type === "inquiry") return false;
-  return !SINGLETON_TYPES.has(type) || !action || !["delete", "duplicate", "unpublish"].includes(action);
+  return (
+    !SINGLETON_TYPES.has(type) ||
+    !action ||
+    !["delete", "duplicate", "unpublish"].includes(action)
+  );
 }

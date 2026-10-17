@@ -288,6 +288,34 @@
 			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' install sanity-plugin-media",
 			"isBackground": false,
 			"problemMatcher": []
+		},
+		{
+			"label": "Test foundation schemas",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=tsx -- tsx --test scripts/foundation-schemas.test.ts",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Format foundation schemas",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\npm.cmd' exec --yes --package=prettier -- prettier --write 'sanity/schemaTypes/objects/*.ts' 'sanity/schemaTypes/documents/*.ts' sanity/schemaTypes/index.ts sanity/schemaTypes/fields.ts sanity/structure.ts sanity/singleton-policy.ts sanity/components/InquiryPrivacyNotice.tsx sanity.config.ts scripts/foundation-schemas.test.ts",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Verify Studio foundation end to end",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\node.exe' scripts/check-studio-foundation.mjs",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Verify foundation document compatibility",
+			"type": "shell",
+			"command": "& 'C:\\Program Files\\nodejs\\node.exe' scripts/check-studio-foundation.mjs --documents-only",
+			"isBackground": false,
+			"problemMatcher": []
 		}
 	]
 }
